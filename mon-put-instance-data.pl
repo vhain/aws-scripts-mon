@@ -34,6 +34,7 @@ Description of available options:
   --disk-inode-util   Reports disk inode utilization in percentages.
   --disk-inode-used   Reports allocated disk inode.
   --disk-inode-avail  Reports available disk inode.
+  --count-process     Reports count of named process , comma-separated
 
   --aggregated[=only]    Adds aggregated metrics for instance type, AMI id, and region.
                          If =only is specified, does not report individual instance metrics
@@ -79,6 +80,8 @@ use File::Basename;
 use Sys::Hostname;
 use Sys::Syslog qw(:DEFAULT setlogsock);
 use Sys::Syslog qw(:standard :macros);
+use CountProcess;
+
 
 BEGIN
 {
@@ -121,6 +124,7 @@ my $report_disk_avail;
 my $report_inode_util;
 my $report_inode_used;
 my $report_inode_avail;
+my $report_count_process;
 my $mem_used_incl_cache_buff;
 my @mount_path;
 my $mem_units;
@@ -162,6 +166,7 @@ my $argv_size = @ARGV;
     'disk-inode-util' => \$report_inode_util,
     'disk-inode-used' => \$report_inode_used,
     'disk-inode-avail' => \$report_inode_avail,
+    'count-process' => \$report_count_process,
     'auto-scaling:s' => \$auto_scaling,
     'aggregated:s' => \$aggregated,
     'memory-units:s' => \$mem_units,
@@ -580,6 +585,12 @@ if ($report_disk_space && ($report_disk_util || $report_disk_used || $report_dis
       add_metric('DiskSpaceAvailable', $disk_units, $disk_avail / $disk_unit_div, $fsystem, $mount);
     }
   }
+}
+
+if ($report_count_process){
+      add_metric('Proc-Count-mingetty', 'Count', count_process('mingetty'));
+      add_metric('Proc-Count-chrome', 'Count', count_process('chrome'));
+      add_metric('Proc-Count-phantom', 'Count', count_process('phantom'));
 }
 
 if ($report_disk_space && ($report_inode_util || $report_inode_used || $report_inode_avail))
